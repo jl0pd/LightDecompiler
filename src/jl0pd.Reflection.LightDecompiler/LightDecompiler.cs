@@ -82,6 +82,18 @@ public static class LightDecompiler
             {
                 writer.WriteLine(format2, instruction.Offset, instruction.OpCode);
             }
+
+            switch (instruction.OpCode.FlowControl)
+            {
+                case FlowControl.Branch:
+                case FlowControl.Break:
+                case FlowControl.Cond_Branch:
+                case FlowControl.Meta:
+                case FlowControl.Return:
+                case FlowControl.Throw:
+                    writer.WriteLine();
+                    break;
+            }
         }
     }
 
