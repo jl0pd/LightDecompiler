@@ -1,21 +1,12 @@
 ﻿namespace jl0pd.Reflection;
 
 using System.Buffers.Binary;
-using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
 
-internal sealed record Instruction(int Offset, OpCode OpCode, object? Operand);
-
 public static class LightDecompiler
 {
-    public static void PrintInstructions(MethodInfo methodInfo)
-        => WriteInstructions(methodInfo, Console.Out);
-
-    public static void PrintInstructions(ReadOnlySpan<byte> il, Module module)
-        => WriteInstructions(il, module, Console.Out);
-
-    public static void WriteInstructions(MethodInfo methodInfo, TextWriter writer)
+    public static IReadOnlyList<Instruction> Decompile(MethodInfo methodInfo)
     {
         if (!methodInfo.MethodImplementationFlags.HasFlag(MethodImplAttributes.IL))
         {
@@ -34,10 +25,10 @@ public static class LightDecompiler
             throw new ArgumentException("Cannot get IL byte array", nameof(methodInfo));
         }
 
-        WriteInstructions(il, methodInfo.Module, writer);
+        return Decompile(il, methodInfo.Module);
     }
 
-    public static void WriteInstructions(ReadOnlySpan<byte> il, Module module, TextWriter writer)
+    public static IReadOnlyList<Instruction> Decompile(ReadOnlySpan<byte> il, Module module)
     {
         var instructions = new List<Instruction>();
         for (int i = 0; i < il.Length;)
@@ -62,90 +53,34 @@ public static class LightDecompiler
             instructions.Add(new Instruction(offset, opCode, operand));
         }
 
-        FormatInstructions(instructions, writer);
-    }
-
-    private static void FormatInstructions(List<Instruction> instructions, TextWriter writer)
-    {
-        int maxSize = instructions.Select(i => i.Offset.ToString(CultureInfo.InvariantCulture).Length).Max();
-
-        var format3 = "{0:D" + maxSize.ToString(CultureInfo.InvariantCulture) + "}:  {1} '{2}'";
-        var format2 = "{0:D" + maxSize.ToString(CultureInfo.InvariantCulture) + "}:  {1}";
-
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Operand is { })
-            {
-                writer.WriteLine(format3, instruction.Offset, instruction.OpCode, instruction.Operand);
-            }
-            else
-            {
-                writer.WriteLine(format2, instruction.Offset, instruction.OpCode);
-            }
-
-            switch (instruction.OpCode.FlowControl)
-            {
-                case FlowControl.Branch:
-                case FlowControl.Break:
-                case FlowControl.Cond_Branch:
-                case FlowControl.Meta:
-                case FlowControl.Return:
-                case FlowControl.Throw:
-                    writer.WriteLine();
-                    break;
-            }
-        }
+        return instructions;
     }
 
     private static object? ReadOperand(ReadOnlySpan<byte> span, int offset, OperandType operandType, Module module, out int size)
     {
         size = OperandSize(operandType);
 
-        switch (operandType)
+        return operandType switch
         {
-            case OperandType.InlineBrTarget:
-                return offset + size + BinaryPrimitives.ReadInt32LittleEndian(span);
-            case OperandType.InlineI:
-            case OperandType.InlineSwitch:
-                return BinaryPrimitives.ReadInt32LittleEndian(span);
-
-            case OperandType.InlineI8:
-                return BinaryPrimitives.ReadInt64LittleEndian(span);
-
-            case OperandType.InlineMethod:
-            case OperandType.InlineTok:
-            case OperandType.InlineType:
-            case OperandType.InlineField:
-                return module.ResolveMember(BinaryPrimitives.ReadInt32LittleEndian(span));
-
-            case OperandType.InlineSig:
-                return module.ResolveSignature(BinaryPrimitives.ReadInt32LittleEndian(span));
-
-            case OperandType.InlineString:
-                return module.ResolveString(BinaryPrimitives.ReadInt32LittleEndian(span));
-
-            case OperandType.InlineNone:
-                return null;
-
-            case OperandType.InlineR:
-                return BinaryPrimitives.ReadDoubleLittleEndian(span);
-
-            case OperandType.InlineVar:
-                return BinaryPrimitives.ReadInt16LittleEndian(span);
-
-            case OperandType.ShortInlineBrTarget:
-                return span[0] + offset + size;
-
-            case OperandType.ShortInlineVar:
-            case OperandType.ShortInlineI:
-                return span[0];
-
-            case OperandType.ShortInlineR:
-                return BinaryPrimitives.ReadSingleLittleEndian(span);
-
-            default:
-                throw new NotSupportedException();
-        }
+            OperandType.InlineBrTarget => offset + size + BinaryPrimitives.ReadInt32LittleEndian(span),
+            OperandType.InlineI or
+            OperandType.InlineSwitch => BinaryPrimitives.ReadInt32LittleEndian(span),
+            OperandType.InlineI8 => BinaryPrimitives.ReadInt64LittleEndian(span),
+            OperandType.InlineMethod or
+            OperandType.InlineTok or
+            OperandType.InlineType or
+            OperandType.InlineField => module.ResolveMember(BinaryPrimitives.ReadInt32LittleEndian(span)),
+            OperandType.InlineSig => module.ResolveSignature(BinaryPrimitives.ReadInt32LittleEndian(span)),
+            OperandType.InlineString => module.ResolveString(BinaryPrimitives.ReadInt32LittleEndian(span)),
+            OperandType.InlineNone => null,
+            OperandType.InlineR => BinaryPrimitives.ReadDoubleLittleEndian(span),
+            OperandType.InlineVar => BinaryPrimitives.ReadInt16LittleEndian(span),
+            OperandType.ShortInlineBrTarget => (byte)(span[0] + offset + size),
+            OperandType.ShortInlineVar or
+            OperandType.ShortInlineI => span[0],
+            OperandType.ShortInlineR => BinaryPrimitives.ReadSingleLittleEndian(span),
+            _ => throw new NotSupportedException(),
+        };
     }
 
     private static int OperandSize(OperandType operandType)
