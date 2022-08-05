@@ -104,13 +104,13 @@ public static class LightDecompiler
         switch (operandType)
         {
             case OperandType.InlineBrTarget:
-                return offset + size + BinaryPrimitives.ReadInt32BigEndian(span);
+                return offset + size + BinaryPrimitives.ReadInt32LittleEndian(span);
             case OperandType.InlineI:
             case OperandType.InlineSwitch:
-                return BinaryPrimitives.ReadInt32BigEndian(span);
+                return BinaryPrimitives.ReadInt32LittleEndian(span);
 
             case OperandType.InlineI8:
-                return BinaryPrimitives.ReadInt64BigEndian(span);
+                return BinaryPrimitives.ReadInt64LittleEndian(span);
 
             case OperandType.InlineMethod:
             case OperandType.InlineTok:
@@ -122,13 +122,13 @@ public static class LightDecompiler
                 return module.ResolveSignature(BinaryPrimitives.ReadInt32LittleEndian(span));
 
             case OperandType.InlineString:
-                return module.ResolveString(BinaryPrimitives.ReadInt32BigEndian(span));
+                return module.ResolveString(BinaryPrimitives.ReadInt32LittleEndian(span));
 
             case OperandType.InlineNone:
                 return null;
 
             case OperandType.InlineR:
-                return BinaryPrimitives.ReadDoubleBigEndian(span);
+                return BinaryPrimitives.ReadDoubleLittleEndian(span);
 
             case OperandType.InlineVar:
                 return BinaryPrimitives.ReadInt16LittleEndian(span);
@@ -141,7 +141,7 @@ public static class LightDecompiler
                 return span[0];
 
             case OperandType.ShortInlineR:
-                return BinaryPrimitives.ReadSingleBigEndian(span);
+                return BinaryPrimitives.ReadSingleLittleEndian(span);
 
             default:
                 throw new NotSupportedException();
