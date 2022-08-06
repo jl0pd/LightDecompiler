@@ -5,9 +5,9 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
-public sealed class MsilInstructionFormatter : IInstructionFormatter
+public sealed class MsilInstructionFormatter
 {
-    public static MsilInstructionFormatter Instance { get; } = new();
+    public MsilInstructionFormatterOptions Options { get; set; } = MsilInstructionFormatterOptions.Default;
 
     public void Format(IReadOnlyList<Instruction> instructions, TextWriter writer)
     {
@@ -27,16 +27,19 @@ public sealed class MsilInstructionFormatter : IInstructionFormatter
                 writer.WriteLine(format2, instruction.Offset, instruction.OpCode);
             }
 
-            switch (instruction.OpCode.FlowControl)
+            if (Options.SeparateJumps)
             {
-                case FlowControl.Branch:
-                case FlowControl.Break:
-                case FlowControl.Cond_Branch:
-                case FlowControl.Meta:
-                case FlowControl.Return:
-                case FlowControl.Throw:
-                    writer.WriteLine();
-                    break;
+                switch (instruction.OpCode.FlowControl)
+                {
+                    case FlowControl.Branch:
+                    case FlowControl.Break:
+                    case FlowControl.Cond_Branch:
+                    case FlowControl.Meta:
+                    case FlowControl.Return:
+                    case FlowControl.Throw:
+                        writer.WriteLine();
+                        break;
+                }
             }
         }
     }
