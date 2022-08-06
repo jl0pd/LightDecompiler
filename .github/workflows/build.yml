@@ -44,11 +44,11 @@ jobs:
       - name: "Pack"
         run: dotnet pack --no-build -c release
         shell: pwsh
-      - name: "Publish Artifacts"
+      - name: "Publish artifacts"
         uses: actions/upload-artifact@v3.1.0
         with:
           name: ${{matrix.os}}
-          path: "./Artifacts"
+          path: "./artifacts"
 
   push-github-packages:
     name: "Push GitHub Packages"
@@ -59,12 +59,12 @@ jobs:
       url: https://github.com/jl0pd/LightDecompiler/packages
     permissions:
       packages: write
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: "Download Artifact"
         uses: actions/download-artifact@v3.0.0
         with:
-          name: "windows-latest"
+          name: "ubuntu-latest"
       - name: "Dotnet NuGet Add Source"
         run: dotnet nuget add source https://nuget.pkg.github.com/jl0pd/index.json --name GitHub --username jl0pd --password ${{secrets.GITHUB_TOKEN}}
         shell: pwsh
@@ -79,12 +79,12 @@ jobs:
     environment:
       name: "NuGet"
       url: https://www.nuget.org/packages/Jl0pd.Reflection.LightDecompiler
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: "Download Artifact"
         uses: actions/download-artifact@v3.0.0
         with:
-          name: "windows-latest"
+          name: "ubuntu-latest"
       - name: "Dotnet NuGet Push"
         run: |
           Get-ChildItem .\ -Filter *.nupkg |
