@@ -50,28 +50,6 @@ jobs:
           name: ${{matrix.os}}
           path: "./artifacts"
 
-  push-github-packages:
-    name: "Push GitHub Packages"
-    needs: build
-    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
-    environment:
-      name: "GitHub Packages"
-      url: https://github.com/jl0pd/LightDecompiler/packages
-    permissions:
-      packages: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Download Artifact"
-        uses: actions/download-artifact@v3.0.0
-        with:
-          name: "ubuntu-latest"
-      - name: "Dotnet NuGet Add Source"
-        run: dotnet nuget add source https://nuget.pkg.github.com/jl0pd/index.json --name GitHub --username jl0pd --password ${{secrets.GITHUB_TOKEN}}
-        shell: pwsh
-      - name: "Dotnet NuGet Push"
-        run: dotnet nuget push .\*.nupkg --api-key ${{ github.token }} --source GitHub --skip-duplicate
-        shell: pwsh
-
   push-nuget:
     name: "Push NuGet Packages"
     needs: build
