@@ -7,14 +7,14 @@ var ty = curMeth.DeclaringType!.GetTypeInfo();
 var meth = ty.DeclaredMethods.First(m => m.Name.Contains(nameof(PrintHw)));
 
 var instr = jl0pd.Reflection.LightDecompiler.Decompile(meth);
-new MsilInstructionFormatter().Format(instr, Console.Out);
+new MsilInstructionFormatter().Format(instr.Instructions, Console.Out);
 
 static void PrintHw()
 {
     Console.WriteLine(ToString((object)"qwe"));
 }
 
-static string ToString<T>(T value)
+static string? ToString<T>(T value)
 {
-    return value.ToString();
+    return value?.ToString();
 }
