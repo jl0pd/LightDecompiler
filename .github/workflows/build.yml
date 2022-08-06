@@ -44,11 +44,11 @@ jobs:
       - name: "Pack"
         run: dotnet pack --no-build -c release
         shell: pwsh
-      - name: "Publish Artefacts"
+      - name: "Publish Artifacts"
         uses: actions/upload-artifact@v3.1.0
         with:
           name: ${{matrix.os}}
-          path: "./Artefacts"
+          path: "./Artifacts"
 
   push-github-packages:
     name: "Push GitHub Packages"
@@ -61,7 +61,7 @@ jobs:
       packages: write
     runs-on: windows-latest
     steps:
-      - name: "Download Artefact"
+      - name: "Download Artifact"
         uses: actions/download-artifact@v3.0.0
         with:
           name: "windows-latest"
@@ -81,7 +81,7 @@ jobs:
       url: https://www.nuget.org/packages/Jl0pd.Reflection.LightDecompiler
     runs-on: windows-latest
     steps:
-      - name: "Download Artefact"
+      - name: "Download Artifact"
         uses: actions/download-artifact@v3.0.0
         with:
           name: "windows-latest"
