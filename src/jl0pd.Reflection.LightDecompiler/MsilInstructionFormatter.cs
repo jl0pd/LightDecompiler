@@ -104,6 +104,7 @@ public sealed class MsilInstructionFormatter : IInstructionFormatter
     {
         return type.FullName switch
         {
+            "System.Object" => "object",
             "System.Void" => "void",
 
             "System.Int8" => "int8",
@@ -149,6 +150,19 @@ public sealed class MsilInstructionFormatter : IInstructionFormatter
         sb.Append(FormatType(methodOrCtor.DeclaringType!));
         sb.Append("::");
         sb.Append(methodOrCtor.Name); // todo: escape
+
+        if (methodOrCtor.IsGenericMethod)
+        {
+            sb.Append('<');
+
+            foreach (var type in methodOrCtor.GetGenericArguments())
+            {
+                sb.Append(FormatType(type));
+            }
+
+            sb.Append('>');
+        }
+
         sb.Append('(');
         int i = 0;
         foreach (var parameter in methodOrCtor.GetParameters())
