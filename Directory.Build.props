@@ -13,6 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" Version="1.1.1" />
-    <PackageReference Include="MinVer" PrivateAssets="all" Version="4.1.0" />
+    <PackageReference Include="MinVer" PrivateAssets="all" Version="4.2.0" />
   </ItemGroup>
 </Project>
