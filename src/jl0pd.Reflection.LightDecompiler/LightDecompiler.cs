@@ -4,7 +4,7 @@ using System.Buffers.Binary;
 using System.Reflection;
 using System.Reflection.Emit;
 
-public static class LightDecompiler
+public static class RuntimeDecompiler
 {
     public static DecompiledMethod Decompile(MethodInfo methodInfo)
     {
@@ -116,7 +116,7 @@ public static class LightDecompiler
         return s_instructions[id].Name?.StartsWith("prefix") ?? false;
     }
 
-    static LightDecompiler()
+    static RuntimeDecompiler()
     {
         var fields = typeof(OpCodes).GetFields();
         foreach (var opCodeField in fields)

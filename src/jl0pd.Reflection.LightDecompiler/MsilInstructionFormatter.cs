@@ -68,7 +68,12 @@ public sealed class MsilInstructionFormatter
         throw new NotImplementedException();
     }
 
-    private static string FormatType(Type type)
+    internal static string FormatAssembly(Assembly assembly)
+    {
+        return "[" + assembly.GetName().Name + "]";
+    }
+
+    internal static string FormatType(Type type)
     {
         if (type.IsPointer)
         {
@@ -95,12 +100,7 @@ public sealed class MsilInstructionFormatter
             return "!!" + type.GenericParameterPosition.ToString(CultureInfo.InvariantCulture);
         }
 
-        var sb = new StringBuilder();
-        sb.Append('[');
-        sb.Append(type.Assembly.GetName().Name);
-        sb.Append(']');
-        sb.Append(type.FullName);
-        return sb.ToString();
+        return FormatAssembly(type.Assembly) + (type.FullName ?? type.Name); // type lacks FullName if it's global, i.e. declared in file without namespace
     }
 
     private static string? GetSpecialTypeString(Type type)
@@ -132,7 +132,7 @@ public sealed class MsilInstructionFormatter
         };
     }
 
-    private static string FormatMethodOrCtor(MethodBase methodOrCtor)
+    internal static string FormatMethodOrCtor(MethodBase methodOrCtor)
     {
         var sb = new StringBuilder();
         if (!methodOrCtor.IsStatic)
@@ -140,9 +140,11 @@ public sealed class MsilInstructionFormatter
             sb.Append("instance ");
         }
 
+        var genMethodDef = methodOrCtor.IsGenericMethod ? ((MethodInfo)methodOrCtor).GetGenericMethodDefinition() : null;
+
         if (methodOrCtor is MethodInfo mInfo)
         {
-            sb.Append(FormatType(mInfo.ReturnParameter.ParameterType));
+            sb.Append(FormatType((genMethodDef ?? mInfo).ReturnParameter.ParameterType));
             sb.Append(' ');
         }
         else
@@ -168,7 +170,7 @@ public sealed class MsilInstructionFormatter
 
         sb.Append('(');
         int i = 0;
-        foreach (var parameter in methodOrCtor.GetParameters())
+        foreach (var parameter in (genMethodDef ?? methodOrCtor).GetParameters())
         {
             if (i != 0)
             {

@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <RootNamespace>jl0pd.Reflection</RootNamespace>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <Authors>Denis Proshutinskii</Authors>
     <Company>jl0pd</Company>
     <Description>Simple decompiler for methods</Description>
@@ -13,6 +17,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../LICENSE" Pack="true" PackagePath="" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="jl0pd.Reflection.LightDecompiler.Tests"/>
   </ItemGroup>
 </Project>
