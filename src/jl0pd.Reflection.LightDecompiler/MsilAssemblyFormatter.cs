@@ -69,7 +69,7 @@ public static partial class MsilAssemblyFormatter
             using (writer.WithIndent())
             {
                 writer.Append("extends ");
-                writer.Append(ReferenceFormatter.FormatType(baseType));
+                writer.AppendLine(ReferenceFormatter.FormatType(baseType));
             }
         }
 
@@ -78,34 +78,41 @@ public static partial class MsilAssemblyFormatter
         {
             WriteTypeMembers(type, writer);
         }
-        writer.Append('}');
+        writer.AppendLine('}');
+        writer.AppendLine();
     }
 
     private static void WriteTypeMembers(Type type, TextBuilder writer)
     {
-        foreach (var field in type.GetFields())
+        var info = type.GetTypeInfo();
+        foreach (var field in info.DeclaredFields)
         {
             WriteField(field, writer);
         }
 
-        foreach (var @event in type.GetEvents())
+        foreach (var @event in info.DeclaredEvents)
         {
             throw new NotImplementedException();
         }
 
-        foreach (var property in type.GetProperties())
+        foreach (var property in info.DeclaredProperties)
         {
             throw new NotImplementedException();
         }
 
-        foreach (var ctor in type.GetConstructors())
+        foreach (var ctor in info.DeclaredConstructors)
         {
             throw new NotImplementedException();
         }
 
-        foreach (var method in type.GetMethods())
+        foreach (var method in info.DeclaredMethods)
         {
             WriteMethod(method, writer);
+        }
+
+        foreach (var nestedType in info.DeclaredNestedTypes)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -126,12 +133,8 @@ public static partial class MsilAssemblyFormatter
         {
             WriteGenericArgs(method.GetGenericArguments(), writer);
         }
-        writer.AppendLine(" (");
-        using (writer.WithIndent())
-        {
-            WriteMethodParameters(method.GetParameters(), writer);
-        }
-        writer.Append(") ");
+
+        WriteParameters(method, writer);
 
         WriteMethodImplFlags(method.MethodImplementationFlags, writer);
         writer.AppendLine();
@@ -142,6 +145,27 @@ public static partial class MsilAssemblyFormatter
             new MsilInstructionFormatter().Format(instructions, writer);
         }
         writer.AppendLine('}');
+    }
+
+    private static void WriteParameters(MethodInfo method, TextBuilder writer)
+    {
+        var parameters = method.GetParameters();
+        
+        if (parameters.Length > 1)
+        {
+            writer.AppendLine(" (");
+        }
+        else
+        {
+            writer.Append(" (");
+        }
+
+        using (writer.WithIndent())
+        {
+            WriteMethodParameters(parameters, writer);
+        }
+        
+        writer.Append(") ");
     }
 
     private static void WriteMethodImplFlags(MethodImplAttributes flags, TextBuilder writer)
@@ -349,16 +373,21 @@ public static partial class MsilAssemblyFormatter
             writer.Append("interface ");
         }
 
+        if (type.IsAbstract)
+        {
+            writer.Append("abstract ");
+        }
+
         writer.Append((type.Attributes & TypeAttributes.VisibilityMask) switch
         {
-            TypeAttributes.NestedAssembly => "nested assembly",
-            TypeAttributes.NestedFamANDAssem => "nested famandassem",
-            TypeAttributes.NestedFamily => "nested family",
-            TypeAttributes.NestedFamORAssem => "nested famorassem",
-            TypeAttributes.NestedPrivate => "nested private",
-            TypeAttributes.NestedPublic => "nested public",
-            TypeAttributes.Public => "public",
-            TypeAttributes.NotPublic => "private",
+            TypeAttributes.NestedAssembly => "nested assembly ",
+            TypeAttributes.NestedFamANDAssem => "nested famandassem ",
+            TypeAttributes.NestedFamily => "nested family ",
+            TypeAttributes.NestedFamORAssem => "nested famorassem ",
+            TypeAttributes.NestedPrivate => "nested private ",
+            TypeAttributes.NestedPublic => "nested public ",
+            TypeAttributes.Public => "public ",
+            TypeAttributes.NotPublic => "private ",
             _ => throw ThrowHelper.Unreachable,
         });
 
