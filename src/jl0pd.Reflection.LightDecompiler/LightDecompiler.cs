@@ -25,10 +25,10 @@ public static class RuntimeDecompiler
             throw new ArgumentException("Cannot get IL byte array", nameof(methodInfo));
         }
 
-        return Decompile(il, methodInfo.Module);
+        return Decompile(il, methodInfo.DeclaringType?.GetGenericArguments(), methodInfo.GetGenericArguments(), methodInfo.Module);
     }
 
-    public static IReadOnlyList<Instruction> Decompile(ReadOnlySpan<byte> il, Module module)
+    public static IReadOnlyList<Instruction> Decompile(ReadOnlySpan<byte> il, Type[]? genericTypeArguments, Type[]? genericMethodArguments, Module module)
     {
         var instructions = new List<Instruction>();
         for (int i = 0; i < il.Length;)
@@ -47,16 +47,19 @@ public static class RuntimeDecompiler
             }
 
             var opCode = s_instructions[id];
-            var operand = ReadOperand(il[i..], i, opCode.OperandType, module, out int size);
+            var operand = ReadOperand(il[i..], i, opCode.OperandType, genericTypeArguments, genericMethodArguments, module, out int size);
             i += size;
 
             instructions.Add(new Instruction(offset, opCode, operand));
         }
 
         return instructions;
+
     }
 
-    private static object? ReadOperand(ReadOnlySpan<byte> span, int offset, OperandType operandType, Module module, out int size)
+    public static IReadOnlyList<Instruction> Decompile(ReadOnlySpan<byte> il, Module module) => Decompile(il, null, null, module);
+
+    private static object? ReadOperand(ReadOnlySpan<byte> span, int offset, OperandType operandType, Type[]? genericTypeArguments, Type[]? genericMethodArguments, Module module, out int size)
     {
         size = OperandSize(operandType);
 
@@ -69,7 +72,7 @@ public static class RuntimeDecompiler
             OperandType.InlineMethod or
             OperandType.InlineTok or
             OperandType.InlineType or
-            OperandType.InlineField => module.ResolveMember(BinaryPrimitives.ReadInt32LittleEndian(span)),
+            OperandType.InlineField => module.ResolveMember(BinaryPrimitives.ReadInt32LittleEndian(span), genericTypeArguments, genericMethodArguments),
             OperandType.InlineSig => module.ResolveSignature(BinaryPrimitives.ReadInt32LittleEndian(span)),
             OperandType.InlineString => module.ResolveString(BinaryPrimitives.ReadInt32LittleEndian(span)),
             OperandType.InlineNone => null,

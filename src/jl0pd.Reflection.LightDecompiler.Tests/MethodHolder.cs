@@ -9,6 +9,8 @@ internal class MethodHolder
     public static float Simple(int x) => x;
 
     public void Instance() { }
+
+    public object? Box<T>(T value) => value;
 }
 
 internal class MethodHolder<TClass>
@@ -18,4 +20,6 @@ internal class MethodHolder<TClass>
     public static float Simple(int x) => x;
 
     public void Instance() { }
+ 
+    public object? Box<T>(T value) => value;
 }
