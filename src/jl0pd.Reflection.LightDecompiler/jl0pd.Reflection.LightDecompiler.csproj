@@ -21,6 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="jl0pd.Reflection.LightDecompiler.Tests"/>
+    <InternalsVisibleTo Include="jl0pd.Reflection.LightDecompiler.Tests" />
   </ItemGroup>
 </Project>

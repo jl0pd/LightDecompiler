@@ -1,7 +1,5 @@
 ﻿namespace jl0pd.Reflection.LightDecompiler.Tests;
 
-using static jl0pd.Reflection.LightDecompiler.Tests.Constants;
-
 public class TypeFormatTests
 {
     const string TypeName = nameof(MethodHolder);
@@ -10,7 +8,7 @@ public class TypeFormatTests
     [Fact]
     public void TestSimpleType()
     {
-        var result = MsilInstructionFormatter.FormatType(typeof(MethodHolder));
+        var result = ReferenceFormatter.FormatType(typeof(MethodHolder));
         Assert.Equal(TypeFullName, result);
     }
 }

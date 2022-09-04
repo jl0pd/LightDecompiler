@@ -6,7 +6,7 @@ using System.Reflection.Emit;
 
 public static class RuntimeDecompiler
 {
-    public static DecompiledMethod Decompile(MethodInfo methodInfo)
+    public static IReadOnlyList<Instruction> Decompile(MethodInfo methodInfo)
     {
         if (!methodInfo.MethodImplementationFlags.HasFlag(MethodImplAttributes.IL))
         {
@@ -25,9 +25,7 @@ public static class RuntimeDecompiler
             throw new ArgumentException("Cannot get IL byte array", nameof(methodInfo));
         }
 
-        var instructions = Decompile(il, methodInfo.Module);
-
-        return new DecompiledMethod(instructions, methodInfo);
+        return Decompile(il, methodInfo.Module);
     }
 
     public static IReadOnlyList<Instruction> Decompile(ReadOnlySpan<byte> il, Module module)
